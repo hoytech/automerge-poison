@@ -48,14 +48,6 @@ Using a modification of Kleppmann's [false_pos.py](https://github.com/ept/byzant
 
 So instead of a ~1% false positive rate, the rate with malicious commits is about 97%.
 
-## Analysis of Round-Trips
-
-From the [informal algorithm description](https://martin.kleppmann.com/2020/12/02/bloom-filter-hash-graph-sync.html):
-
-> After receiving all the commits that did not appear in the Bloom filter, we check whether we know all of their predecessor hashes. If any are missing, we request them in a separate round trip using the same graph traversal algrorithm [sic] as before. Due to the way the false positive probabilities work, the probability of requiring n round trips decreases exponentially as n grows. For example, you might have a 1% chance of requiring two round trips, a 0.01% chance of requiring three round trips, a 0.0001% chance of requiring four round trips, and so on. Almost all reconciliations complete in one round trip.
-
-This does not seem quite right. For now, assume that the commit DAG is a linear unbranching history (although this doesn't ultimately change the analysis). If two adjacent commits are missed due to false positives, then two round-trips will be required to reconcile the sets. If the two commits are not adjacent, then their resolution can be batched together in only one round-trip. Therefore, the probability distribution of the number of round-trips required can be better modelled by considering each commit to be the flip of a biased coin, and determining the distribution of the [longest run of heads](https://maa.org/sites/default/files/pdf/upload_library/22/Polya/07468342.di020742.02p0021g.pdf). This problem is notable for how counter-intuitive the solution is (long runs are more common than expected).
-
 ## Conclusion
 
 By mining 9 bits of each commit, the automerge sync protocol will degenerate into a nearly worst-case behaviour where the number of round-trips is proportional to the number of commits to be synced.
